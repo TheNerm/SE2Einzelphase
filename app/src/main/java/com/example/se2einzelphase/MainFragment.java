@@ -1,6 +1,7 @@
 package com.example.se2einzelphase;
 
 import android.os.Bundle;
+import android.os.NetworkOnMainThreadException;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -45,17 +46,29 @@ public class MainFragment extends Fragment {
 
                 try{
                     Socket clientSocket = new Socket("se2-isys.aau.at", 53212);
+
                     DataOutputStream outputStream = new DataOutputStream(clientSocket.getOutputStream());
                     BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
                     outputStream.writeBytes(matrikelnummerInput.getText().toString());
+
                     serverAntwortField.setText(bufferedReader.readLine());
+
                     clientSocket.close();
+                    bufferedReader.close();
+                    outputStream.close();
                 }catch (IOException e){
 
                 }
+                catch(NetworkOnMainThreadException n){
 
+                }
 
+                char matrikelNummerConverted[] = matrikelnummerInput.getText().toString().toCharArray();
+                for(int i = 1; i < matrikelNummerConverted.length;i=i+2){
+                    matrikelNummerConverted[i] = (char)(matrikelNummerConverted[i] +48);
+                }
 
+                convertedMatrikelnummerField.setText(String.valueOf(matrikelNummerConverted));
             }
         });
 
