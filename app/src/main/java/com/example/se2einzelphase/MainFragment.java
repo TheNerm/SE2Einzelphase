@@ -29,6 +29,8 @@ public class MainFragment extends Fragment {
     private TextView serverAntwortField;
     private TextView convertedMatrikelnummerField;
 
+    private String tmpServerResponse;
+
     @Override
     public View onCreateView(
             LayoutInflater inflater, ViewGroup container,
@@ -44,24 +46,36 @@ public class MainFragment extends Fragment {
             @Override
             public void onClick(View view) {
 
+
+                Thread serverInteractionThread = new Thread(new Runnable(){
+                    @Override
+                    public void run(){
+                        try{
+                            Socket clientSocket = new Socket("se2-isys.aau.at", 53212);
+
+                            DataOutputStream outputStream = new DataOutputStream(clientSocket.getOutputStream());
+                            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+                            outputStream.writeBytes(matrikelnummerInput.getText().toString() + '\n');
+
+                            tmpServerResponse = bufferedReader.readLine();
+
+                            clientSocket.close();
+                            bufferedReader.close();
+                            outputStream.close();
+                        }catch (IOException e){
+
+                        }
+                    }
+                });
+                serverInteractionThread.start();
+
                 try{
-                    Socket clientSocket = new Socket("se2-isys.aau.at", 53212);
-
-                    DataOutputStream outputStream = new DataOutputStream(clientSocket.getOutputStream());
-                    BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-                    outputStream.writeBytes(matrikelnummerInput.getText().toString());
-
-                    serverAntwortField.setText(bufferedReader.readLine());
-
-                    clientSocket.close();
-                    bufferedReader.close();
-                    outputStream.close();
-                }catch (IOException e){
-
+                    serverInteractionThread.join();
+                }catch(InterruptedException e){
+                    e.printStackTrace();
                 }
-                catch(NetworkOnMainThreadException n){
 
-                }
+                serverAntwortField.setText(tmpServerResponse);
 
                 char matrikelNummerConverted[] = matrikelnummerInput.getText().toString().toCharArray();
                 for(int i = 1; i < matrikelNummerConverted.length;i=i+2){
