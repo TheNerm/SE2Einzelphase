@@ -1,5 +1,6 @@
 package com.example.se2einzelphase;
 
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.NetworkOnMainThreadException;
 import android.view.LayoutInflater;
@@ -26,6 +27,7 @@ public class MainFragment extends Fragment {
     private FragmentFirstBinding binding;
     private EditText matrikelnummerInput;
     private Button oKButton;
+    private Button calcButton;
     private TextView serverAntwortField;
     private TextView convertedMatrikelnummerField;
 
@@ -38,14 +40,16 @@ public class MainFragment extends Fragment {
     ) {
 
         binding = FragmentFirstBinding.inflate(inflater, container, false);
+
         oKButton = binding.OKButton;
         serverAntwortField = binding.Serverantwort;
         convertedMatrikelnummerField = binding.MatrikelnummerConverted;
         matrikelnummerInput = binding.MatrikelnummerEingabe;
+        calcButton = binding.BerechnenButton;
+
         oKButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
 
                 Thread serverInteractionThread = new Thread(new Runnable(){
                     @Override
@@ -54,16 +58,17 @@ public class MainFragment extends Fragment {
                             Socket clientSocket = new Socket("se2-isys.aau.at", 53212);
 
                             DataOutputStream outputStream = new DataOutputStream(clientSocket.getOutputStream());
-                            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+                            BufferedReader inputStream = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
                             outputStream.writeBytes(matrikelnummerInput.getText().toString() + '\n');
 
-                            tmpServerResponse = bufferedReader.readLine();
+                            tmpServerResponse = inputStream.readLine();
 
                             clientSocket.close();
-                            bufferedReader.close();
+                            inputStream.close();
                             outputStream.close();
-                        }catch (IOException e){
 
+                        }catch (IOException e){
+                            e.printStackTrace();
                         }
                     }
                 });
@@ -76,7 +81,12 @@ public class MainFragment extends Fragment {
                 }
 
                 serverAntwortField.setText(tmpServerResponse);
+            }
+        });
 
+        calcButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
                 char matrikelNummerConverted[] = matrikelnummerInput.getText().toString().toCharArray();
                 for(int i = 1; i < matrikelNummerConverted.length;i=i+2){
                     matrikelNummerConverted[i] = (char)(matrikelNummerConverted[i] +48);
@@ -89,6 +99,7 @@ public class MainFragment extends Fragment {
         return binding.getRoot();
 
     }
+
 
 
 
