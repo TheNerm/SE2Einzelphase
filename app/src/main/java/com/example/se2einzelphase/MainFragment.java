@@ -119,5 +119,4 @@ public class MainFragment extends Fragment {
         super.onDestroyView();
         binding = null;
     }
-
 }
