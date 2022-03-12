@@ -50,62 +50,68 @@ public class MainFragment extends Fragment {
         oKButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
-                Thread serverInteractionThread = new Thread(new Runnable(){
-                    @Override
-                    public void run(){
-                        try{
-                            Socket clientSocket = new Socket("se2-isys.aau.at", 53212);
-
-                            DataOutputStream outputStream = new DataOutputStream(clientSocket.getOutputStream());
-                            BufferedReader inputStream = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-                            outputStream.writeBytes(matrikelnummerInput.getText().toString() + '\n');
-
-                            tmpServerResponse = inputStream.readLine();
-
-                            clientSocket.close();
-                            inputStream.close();
-                            outputStream.close();
-
-                        }catch (IOException e){
-                            e.printStackTrace();
-                        }
-                    }
-                });
-                serverInteractionThread.start();
-
-                try{
-                    serverInteractionThread.join();
-                }catch(InterruptedException e){
-                    e.printStackTrace();
-                }
-
-                serverAntwortField.setText(tmpServerResponse);
+                getMatrikelNRfromServer();
             }
         });
 
         calcButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                char matrikelNummerConverted[] = matrikelnummerInput.getText().toString().toCharArray();
-                for(int i = 1; i < matrikelNummerConverted.length;i=i+2){
-                    matrikelNummerConverted[i] = (char)(matrikelNummerConverted[i] +48);
-                }
-
-                convertedMatrikelnummerField.setText(String.valueOf(matrikelNummerConverted));
+                doCalculation();
             }
         });
 
         return binding.getRoot();
-
     }
 
+    private void getMatrikelNRfromServer(){
+        Thread serverInteractionThread = new Thread(new Runnable(){
+            @Override
+            public void run(){
+                try{
+                    Socket clientSocket = new Socket("se2-isys.aau.at", 53212);
 
+                    DataOutputStream outputStream = new DataOutputStream(clientSocket.getOutputStream());
+                    BufferedReader inputStream = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+                    outputStream.writeBytes(matrikelnummerInput.getText().toString() + '\n');
 
+                    tmpServerResponse = inputStream.readLine();
+
+                    clientSocket.close();
+                    inputStream.close();
+                    outputStream.close();
+
+                }catch (IOException e){
+                    e.printStackTrace();
+                    tmpServerResponse = "Error occurred. Please try again";
+                }
+            }
+        });
+        serverInteractionThread.start();
+
+        try{
+            serverInteractionThread.join();
+        }catch(InterruptedException e){
+            e.printStackTrace();
+            tmpServerResponse = "Error occurred. Please try again";
+        }
+
+        serverAntwortField.setText(tmpServerResponse);
+    }
+
+    private void doCalculation(){
+        char matrikelNummerConverted[] = matrikelnummerInput.getText().toString().toCharArray();
+
+        for(int i = 1; i < matrikelNummerConverted.length;i=i+2){
+            //Note: when converting 0 with this method, the character ' is the result
+            //Since the exercise sheet didn't specify anything regarding this, it was assumed that this is the intended approach
+            matrikelNummerConverted[i] = (char)(matrikelNummerConverted[i] +48);
+        }
+        convertedMatrikelnummerField.setText(String.valueOf(matrikelNummerConverted));
+    }
 
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-
     }
 
     @Override
